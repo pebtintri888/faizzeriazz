@@ -1,0 +1,875 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Faizzeria</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #EEC170; /* Changed background color */
+            transition: background-color 0.4s;
+        }
+        header {
+            background-color: #F58549; /* Changed header background color */
+            color: #585123; /* Changed header text color */
+            padding: 20px 0;
+            text-align: center;
+        }
+        nav {
+            background-color: #F2A65A; /* Changed nav background color */
+            overflow: hidden;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            transition: background-color 0.3s;
+        }
+        nav a {
+            color: #772F1A; /* Changed nav link color */
+            padding: 14px 20px;
+            text-decoration: none;
+            float: left;
+            cursor: pointer;
+        }
+        nav a:hover {
+            background-color: #EEC170; /* Changed nav link hover background color */
+        }
+        .hero {
+            background-color: #EEC170; /* Changed hero background color */
+            color: #772F1A; /* Changed hero text color */
+            padding: 80px 0;
+            text-align: center;
+        }
+        .section {
+            padding: 40px;
+            margin: 20px;
+            background-color: #585123; /* Changed section background color */
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            opacity: 0;
+            transition: opacity 1s ease-in-out;
+            color: white;
+        }
+        .section.visible {
+            opacity: 1;
+        }
+        .services {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 30px;
+        }
+        .service {
+            background-color: #F2A65A; /* Changed service background color */
+            padding: 20px;
+            border-radius: 8px;
+            width: 30%;
+            text-align: center;
+            transition: transform 0.3s;
+            color: #772F1A; /* Changed service text color */
+        }
+        .service:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        footer {
+            background-color: #F58549; /* Changed footer background color */
+            color: #585123; /* Changed footer text color */
+            text-align: center;
+            padding: 1px 0;
+            position: 0;
+            width: 100%;
+            bottom: 0;
+        }
+        .contact-form input, .contact-form textarea {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: #EEC170; /* Changed input background color */
+            color: #772F1A; /* Changed input text color */
+        }
+        .contact-form button {
+            background-color: #F58549; /* Changed button background color */
+            color: white;
+            padding: 14px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .contact-form button:hover {
+            background-color: #772F1A; /* Changed button hover background color */
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(88, 81, 35, 0.4); /* Changed modal background color */
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            width: 60%;
+            text-align: center;
+            color: #772F1A; /* Changed modal content text color */
+        }
+        .modal-content button {
+            background-color: #772F1A; /* Changed modal button background color */
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .modal-content button:hover {
+            background-color: #585123; /* Changed modal button hover background color */
+        }
+        #map {
+            height: 400px;
+            width: 100%;
+            margin-top: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        #itinerary-output, #custom-itinerary-output {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #EEC170; /* Changed itinerary output background color */
+            border-radius: 8px;
+            color: #772F1A; /* Changed itinerary output text color */
+            border: 1px solid #F2A65A; /* Changed itinerary output border color */
+        }
+        #destination-recommendations {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #EEC170; /* Changed recommendations background color */
+            border-radius: 8px;
+            color: #772F1A; /* Changed recommendations text color */
+            border: 1px solid #F2A65A; /* Changed recommendations border color */
+        }
+        #local-tips {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #EEC170; /* Changed local tips background color */
+            border-radius: 8px;
+            color: #772F1A; /* Changed local tips text color */
+            border: 1px solid #F2A65A; /* Changed local tips border color */
+        }
+        .hidden {
+            display: none;
+        }
+        .tab-link {
+            color: #772F1A; /* Changed tab link color */
+            padding: 14px 20px;
+            text-decoration: none;
+            float: left;
+            cursor: pointer;
+        }
+        .tab-link:hover {
+            background-color: #EEC170; /* Changed tab link hover background color */
+        }
+        .active-tab {
+            background-color: #EEC170; /* Changed active tab background color */
+        }
+        .sub-tab-link {
+            color: #772F1A; /* Changed sub-tab link color */
+            padding: 10px 15px;
+            text-decoration: none;
+            display: block;
+            cursor: pointer;
+            margin-left: 20px;
+        }
+        .sub-tab-link:hover {
+            background-color: #EEC170; /* Changed sub-tab link hover background color */
+        }
+        .active-sub-tab {
+            background-color: #EEC170; /* Changed active sub-tab background color */
+        }
+        #faizzeria {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h2>Faizzeria</h2>
+        <h3>Crunch and Crust!</h3>
+    </header>
+
+    <nav>
+        <a href="#about" class="tab-link active-tab" onclick="showTab('about')">About Us</a>
+        <a href="#services" class="tab-link" onclick="showTab('services')">Services</a>
+        <a href="#faizzeria" class="tab-link" onclick="showTab('faizzeria'); showFizzeriaTab('pizzaCustomization')">Pizza Menu</a>
+        <a href="#itinerary" class="tab-link" onclick="showTab('itinerary')">Itinerary</a>
+        <a href="#contact" class="tab-link" onclick="showTab('contact')">Contact Us</a>
+    </nav>
+
+    <div class="hero">
+        <h2>Create Your Pizza Journey!</h2>
+        <p>Discover personalized pizza recipes and travel itineraries.</p>
+    </div>
+
+    <div class="section" id="about">
+        <h2>About Us</h2>
+        <p>At Faizzeria, we are committed to delivering high-quality solutions tailored to meet your unique business challenges. Our team is passionate about providing expert advice and support to help you succeed.</p>
+    </div>
+
+    <div class="section" id="services">
+        <h2>Our Services</h2>
+        <div class="services">
+            <div class="service">
+                <h3>Personalized Pizza Recipes</h3>
+                <p>Choose unique pizza recipes based on your tastes.</p>
+            </div>
+            <div class="service">
+                <h3>Custom Travel Itineraries</h3>
+                <p>Explore destinations with tailored activities and dining options.</p>
+            </div>
+            <div class="service">
+                <h3>Local Tips and Insights</h3>
+                <p>Discover hidden gems and must-try pizzas.</p>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+        }
+        h1 {
+            text-align: center;
+            color: #F58549;
+            margin-bottom: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .menu {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        .pizza-card {
+            background-color: #fff;
+            border-radius: 8px;
+            width: 220px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            text-align: center;
+            padding: 15px;
+            transition: transform 0.3s ease;
+        }
+        .pizza-card:hover {
+            transform: translateY(-5px);
+        }
+        .pizza-card img {
+            width: 100%;
+            border-radius: 8px;
+        }
+        .pizza-card h3 {
+            color: #333;
+            font-size: 1.2rem;
+            margin-top: 10px;
+        }
+        .pizza-card p {
+            color: #888;
+            font-size: 1rem;
+        }
+        .pizza-card .price {
+            color: #F58549;
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+        .pizza-card .order-button {
+            background-color: #F58549;
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 10px;
+            font-size: 1rem;
+            transition: background-color 0.3s ease;
+        }
+        .pizza-card .order-button.added {
+            background-color: #4CAF50;
+        }
+        .pizza-card .order-button:hover {
+            background-color: #F2A65A;
+        }
+        .pizza-card .order-button.added:hover {
+            background-color: #45a049;
+        }
+        .pizza-card .buy-now-button {
+            background-color: #FFD700;
+            color: #772F1A;
+            border: none;
+            padding: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 10px;
+            font-size: 1rem;
+            transition: background-color 0.3s ease;
+        }
+        .pizza-card .buy-now-button:hover {
+            background-color: #FFA500;
+        }
+
+        .order-summary {
+            margin-top: 30px;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .order-summary h3 {
+            text-align: center;
+            color: #333;
+        }
+        .order-summary ul {
+            list-style: none;
+            padding: 0;
+        }
+        .order-summary ul li {
+            margin: 10px 0;
+            font-size: 1.1rem;
+            color: #333;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .order-summary ul li button {
+            background: none;
+            border: none;
+            color: #F58549;
+            cursor: pointer;
+            font-size: 1rem;
+            margin-left: 10px;
+        }
+        .order-summary ul li button:hover {
+            color: #F2A65A;
+        }
+        .order-summary .total-price {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #F58549;
+            margin-top: 15px;
+            text-align: right;
+        }
+        .order-summary .buy-all-button { /* New styles for Buy All button */
+            background-color: #F58549;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1.2rem;
+            margin: 20px auto 0 auto;
+            display: block;
+            transition: background-color 0.3s ease;
+        }
+        .order-summary .buy-all-button:hover {
+            background-color: #F2A65A;
+        }
+
+        .empty-cart {
+            text-align: center;
+            color: #888;
+            font-style: italic;
+            margin-top: 20px;
+        }
+
+        /* New Styles based on provided colors */
+        body {
+            background-color: #EEC170;
+        }
+        .pizza-card {
+            background-color: #FFF;
+        }
+        h1 {
+            color: #F58549;
+        }
+        .pizza-card h3 {
+            color: #772F1A;
+        }
+        .pizza-card p {
+            color: #585123;
+        }
+        .pizza-card .price {
+            color: #F58549;
+        }
+        .pizza-card .order-button {
+            background-color: #F58549;
+        }
+        .pizza-card .order-button:hover {
+            background-color: #F2A65A;
+        }
+        .order-summary {
+            background-color: #FFF;
+        }
+        .order-summary h3 {
+            color: #772F1A;
+        }
+        .order-summary ul li {
+            color: #585123;
+        }
+        .order-summary ul li button {
+            color: #F58549;
+        }
+        .order-summary ul li button:hover {
+            color: #F2A65A;
+        }
+        .order-summary .total-price {
+            color: #F58549;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Pizza Menu</h1>
+
+        <div class="menu">
+            <div class="pizza-card" data-name="Margherita" data-price="300">
+                <img src="Gemini_Generated_Image_kdk4a9kdk4a9kdk4.jpg" alt="Margherita Pizza">
+                <h3>Margherita</h3>
+                <p>Classic cheese and tomato</p>
+                <div class="price">₱300.00</div>
+                <button class="order-button" onclick="toggleOrderItem('Margherita', 300, this)">Add to Cart</button>
+                <button class="buy-now-button" onclick="buyNow('Margherita', 300)">Buy Now</button> </div>
+
+            <div class="pizza-card" data-name="Pepperoni" data-price="350">
+                <img src="ppepepeperrororonniki.jpg" alt="Pepperoni Pizza">
+                <h3>Pepperoni</h3>
+                <p>Spicy pepperoni with cheese</p>
+                <div class="price">₱350.00</div>
+                <button class="order-button" onclick="toggleOrderItem('Pepperoni', 350, this)">Add to Cart</button>
+                <button class="buy-now-button" onclick="buyNow('Pepperoni', 350)">Buy Now</button> </div>
+
+            <div class="pizza-card" data-name="Veggie" data-price="320">
+                <img src="Gemini_Generated_Image_w9x79yw9x79yw9x7 (1).jpg" alt="Veggie Pizza">
+                <h3>Veggie</h3>
+                <p>Loaded with fresh vegetables</p>
+                <div class="price">₱320.00</div>
+                <button class="order-button" onclick="toggleOrderItem('Veggie', 320, this)">Add to Cart</button>
+                <button class="buy-now-button" onclick="buyNow('Veggie', 320)">Buy Now</button> </div>
+
+            <div class="pizza-card" data-name="BBQ Chicken" data-price="400">
+                <img src="Gemini_Generated_Image_3zudg43zudg43zud.jpg" alt="BBQ Chicken Pizza">
+                <h3>BBQ Chicken</h3>
+                <p>Grilled chicken with BBQ sauce</p>
+                <div class="price">₱400.00</div>
+                <button class="order-button" onclick="toggleOrderItem('BBQ Chicken', 400, this)">Add to Cart</button>
+                <button class="buy-now-button" onclick="buyNow('BBQ Chicken', 400)">Buy Now</button> </div>
+
+            <div class="pizza-card" data-name="Green Dream" data-price="450">
+                <img src="Gemini_Generated_Image_m430sim430sim430.jpg" alt="Green Dream Pizza">
+                <h3>Green Dream</h3>
+                <p>Fresh greens with a pesto base</p>
+                <div class="price">₱450.00</div>
+                <button class="order-button" onclick="toggleOrderItem('Green Dream', 450, this)">Add to Cart</button>
+                <button class="buy-now-button" onclick="buyNow('Green Dream', 450)">Buy Now</button> </div>
+
+            <div class="pizza-card" data-name="Salty Sailor" data-price="500">
+                <img src="Gemini_Generated_Image_24646n24646n2464.jpg" alt="Salty Sailor Pizza">
+                <h3>Salty Sailor</h3>
+                <p>Anchovies and olives</p>
+                <div class="price">₱500.00</div>
+                <button class="order-button" onclick="toggleOrderItem('Salty Sailor', 500, this)">Add to Cart</button>
+                <button class="buy-now-button" onclick="buyNow('Salty Sailor', 500)">Buy Now</button> </div>
+
+            <div class="pizza-card" data-name="Flammkuchen" data-price="450">
+                <img src="Gemini_Generated_Image_d1nmg1d1nmg1d1nm.jpg" alt="Flammkuchen Pizza">
+                <h3>Flammkuchen</h3>
+                <p>German style pizza with crème fraiche</p>
+                <div class="price">₱450.00</div>
+                <button class="order-button" onclick="toggleOrderItem('Flammkuchen', 450, this)">Add to Cart</button>
+                <button class="buy-now-button" onclick="buyNow('Flammkuchen', 450)">Buy Now</button> </div>
+
+            <div class="pizza-card" data-name="Hawaiian" data-price="320">
+                <img src="Gemini_Generated_Image_bfrlb7bfrlb7bfrl.jpg" alt="Hawaiian Pizza">
+                <h3>Hawaiian</h3>
+                <p>Ham and pineapple</p>
+                <div class="price">₱320.00</div>
+                <button class="order-button" onclick="toggleOrderItem('Hawaiian', 320, this)">Add to Cart</button>
+                <button class="buy-now-button" onclick="buyNow('Hawaiian', 320)">Buy Now</button> </div>
+
+            <div class="pizza-card" data-name="Classic Greek" data-price="380">
+                <img src="Gemini_Generated_Image_6750of6750of6750.jpg" alt="Classic Greek Pizza">
+                <h3>Classic Greek</h3>
+                <p>Olives, feta, and tomatoes</p>
+                <div class="price">₱380.00</div>
+                <button class="order-button" onclick="toggleOrderItem('Classic Greek', 380, this)">Add to Cart</button>
+                <button class="buy-now-button" onclick="buyNow('Classic Greek', 380)">Buy Now</button> </div>
+
+            <div class="pizza-card" data-name="Shrimp" data-price="500">
+                <img src="shrrrimp.jpg.jpg" alt="Shrimp Pizza">
+                <h3>Shrimp</h3>
+                <p>Fresh shrimp with garlic and herbs</p>
+                <div class="price">₱500.00</div>
+                <button class="order-button" onclick="toggleOrderItem('Shrimp', 500, this)">Add to Cart</button>
+                <button class="buy-now-button" onclick="buyNow('Shrimp', 500)">Buy Now</button> </div>
+
+            <div class="pizza-card" data-name="Sliced Tomato" data-price="280">
+                <img src="Gemini_Generated_Image_1nyn781nyn781nyn.jpg" alt="Sliced Tomato Pizza">
+                <h3>Sliced Tomato</h3>
+                <p>Fresh tomatoes</p>
+                <div class="price">₱280.00</div>
+                <button class="order-button" onclick="toggleOrderItem('Sliced Tomato', 280, this)">Add to Cart</button>
+                <button class="buy-now-button" onclick="buyNow('Sliced Tomato', 280)">Buy Now</button> </div>
+
+            <div class="pizza-card" data-name="Neapolitan" data-price="350">
+                <img src="Gemini_Generated_Image_fv086ofv086ofv08.jpg" alt="Neapolitan Pizza">
+                <h3>Neapolitan</h3>
+                <p>Classic Italian pizza with tomatoes and fresh basil</p>
+                <div class="price">₱350.00</div>
+                <button class="order-button" onclick="toggleOrderItem('Neapolitan', 350, this)">Add to Cart</button>
+                <button class="buy-now-button" onclick="buyNow('Neapolitan', 350)">Buy Now</button> </div>
+
+             <div class="pizza-card" data-name="Jalapeno" data-price="320">
+                <img src="Gemini_Generated_Image_goz20cgoz20cgoz2.jpg" alt="Jalapeno Pizza">
+                <h3>Jalapeno</h3>
+                <p>Spicy jalapenos with cheese</p>
+                <div class="price">₱320.00</div>
+                <button class="order-button" onclick="toggleOrderItem('Jalapeno', 320, this)">Add to Cart</button>
+                <button class="buy-now-button" onclick="buyNow('Jalapeno', 320)">Buy Now</button> </div>
+
+            <div class="pizza-card" data-name="Puttanesca" data-price="450">
+                <img src="Gemini_Generated_Image_so5ivmso5ivmso5i.jpg" alt="Puttanesca Pizza">
+                <h3>Puttanesca</h3>
+                <p>Olives, capers, and anchovies</p>
+                <div class="price">₱450.00</div>
+                <button class="order-button" onclick="toggleOrderItem('Puttanesca', 450, this)">Add to Cart</button>
+                <button class="buy-now-button" onclick="buyNow('Puttanesca', 450)">Buy Now</button> </div>
+
+            <div class="pizza-card" data-name="Figs" data-price="400">
+                <img src="Gemini_Generated_Image_bjioombjioombjio.jpg" alt="Figs Pizza">
+                <h3>Figs</h3>
+                <p>Figs, prosciutto, and arugula</p>
+                <div class="price">₱400.00</div>
+                <button class="order-button" onclick="toggleOrderItem('Figs', 400, this)">Add to Cart</button>
+                <button class="buy-now-button" onclick="buyNow('Figs', 400)">Buy Now</button> </div>
+        </div>
+
+        <div class="order-summary">
+            <h3>Order Summary</h3>
+            <ul id="order-list">
+                <li class="empty-cart">Your cart is empty.</li>
+            </ul>
+            <div class="total-price">
+                Total: ₱0.00
+            </div>
+            <button class="buy-all-button" onclick="buyAllOrders()">Buy All</button>
+        </div>
+    </div>
+
+    <script>
+        let order = [];
+        const orderListElement = document.getElementById("order-list");
+        const totalPriceElement = document.querySelector(".total-price");
+
+        function updateOrderSummary() {
+            orderListElement.innerHTML = "";
+            let totalPrice = 0;
+
+            if (order.length === 0) {
+                const emptyCartItem = document.createElement("li");
+                emptyCartItem.classList.add("empty-cart");
+                emptyCartItem.textContent = "Your cart is empty.";
+                orderListElement.appendChild(emptyCartItem);
+            } else {
+                order.forEach((item, index) => {
+                    const li = document.createElement("li");
+                    li.innerHTML = `
+                        <span>${item.name} - ₱${item.price.toFixed(2)}</span>
+                        <button onclick="removeOrderItem(${index})">Remove</button>
+                    `;
+                    orderListElement.appendChild(li);
+                    totalPrice += item.price;
+                });
+            }
+
+            totalPriceElement.textContent = `Total: ₱${totalPrice.toFixed(2)}`;
+        }
+
+        function toggleOrderItem(pizzaName, pizzaPrice, button) {
+            const existingIndex = order.findIndex(item => item.name === pizzaName);
+
+            if (existingIndex > -1) {
+                // Remove item from order
+                order.splice(existingIndex, 1);
+                button.textContent = "Add to Cart";
+                button.classList.remove("added");
+            } else {
+                // Add item to order
+                const pizza = {
+                    name: pizzaName,
+                    price: pizzaPrice
+                };
+                order.push(pizza);
+                button.textContent = "Remove from Cart";
+                button.classList.add("added");
+            }
+            updateOrderSummary();
+        }
+
+        function removeOrderItem(index) {
+            const removedItem = order.splice(index, 1)[0];
+            const buttons = document.querySelectorAll('.order-button');
+            buttons.forEach(button => {
+                if (button.textContent === "Remove from Cart" && button.parentNode.querySelector('h3').textContent === removedItem.name) {
+                    button.textContent = "Add to Cart";
+                    button.classList.remove("added");
+                }
+            });
+            updateOrderSummary();
+        }
+
+        function buyNow(pizzaName, pizzaPrice) {
+            alert(`Buying ${pizzaName} for ₱${pizzaPrice.toFixed(2)}!`);
+            // In a real application, you would redirect to a checkout page or handle the purchase directly.
+        }
+
+        function buyAllOrders() {
+            if (order.length === 0) {
+                alert("Your cart is empty!");
+            } else {
+                let total = 0;
+                let orderSummary = "Your Order:\n";
+                order.forEach(item => {
+                    orderSummary += `${item.name} - ₱${item.price.toFixed(2)}\n`;
+                    total += item.price;
+                });
+                orderSummary += `Total: ₱${total.toFixed(2)}`;
+                alert(orderSummary);
+                order = [];
+                updateOrderSummary();
+            }
+        }
+
+        // Initial call to update summary in case the cart starts empty
+        updateOrderSummary();
+    </script>
+
+<div class="section hidden" id="itinerary">
+    <h2>Customize Your Itinerary</h2>
+    <form id="travel-style-form">
+        <label for="travelStyle">Travel Style:</label>
+        <select id="travelStyle" name="travelStyle">
+            <option value="luxury">Luxury</option>
+            <option value="budget">Budget</option>
+            <option value="adventure">Adventure</option>
+        </select>
+        <label for="travelInterests">Interests:</label>
+        <input type="text" id="travelInterests" name="travelInterests">
+        <label for="transportation">Transportation:</label>
+        <select id="transportation" name="transportation">
+            <option value="car">Car</option>
+            <option value="public">Public Transport</option>
+            <option value="walking">Walking</option>
+        </select>
+        <button type="button" onclick="customizeItinerary()">Customize Itinerary</button>
+    </form>
+    <div id="custom-itinerary-output"></div>
+    <div id="map"></div>
+</div>
+
+<div class="section" id="contact">
+    <h2>Contact Us</h2>
+    <p>We’d love to hear from you! Please fill out the form below, and we will get back to you as soon as possible.</p>
+    <form class="contact-form" id="contactForm" onsubmit="return validateForm()">
+        <input type="text" id="name" name="name" placeholder="Your Name" required>
+        <input type="email" id="email" name="email" placeholder="Your Email" required>
+        <textarea id="message" name="message" rows="5" placeholder="Your Message" required></textarea>
+        <button type="submit">Send Message</button>
+    </form>
+</div>
+
+<footer>
+    <p>&copy; 2024 @Faizzeria. All Rights Reserved.</p>
+</footer>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        console.log('DOM fully loaded and parsed.');
+
+        // Initialize map
+        let map;
+        let pizzaShopMarkers = []; // Array to store pizza shop markers
+
+        function initMap() {
+            console.log('Initializing map...');
+            map = L.map('map').setView([12.8797, 121.7740], 6);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            }).addTo(map);
+        }
+
+        // Scroll Effects
+        window.addEventListener('scroll', () => {
+            const sections = document.querySelectorAll('.section');
+            sections.forEach((section) => {
+                const rect = section.getBoundingClientRect();
+                if (rect.top <= window.innerHeight / 1.2) {
+                    section.classList.add('visible');
+                }
+            });
+        });
+
+        // Contact Form Validation
+        function validateForm() {
+            const name = document.getElementById('name').value;
+            const email = document.getElementById('email').value;
+            const message = document.getElementById('message').value;
+            if (!name || !email || !message) {
+                alert('Please fill in all fields');
+                return false;
+            }
+            alert('Message Sent!');
+            return false;
+        }
+
+        // Tab Navigation
+        function showTab(tabId) {
+            console.log(`Switching to tab: ${tabId}`);
+            const tabs = document.querySelectorAll('.section');
+            tabs.forEach(tab => tab.classList.add('hidden')); // Hide all sections
+            document.getElementById(tabId).classList.remove('hidden'); // Show the selected section
+
+            const tabLinks = document.querySelectorAll('.tab-link');
+            tabLinks.forEach(link => {
+                link.classList.remove('active-tab'); // Remove active class
+                if (link.getAttribute('href') === '#' + tabId) {
+                    link.classList.add('active-tab'); // Add active class
+                }
+            });
+
+            if (tabId === 'itinerary' && !map) {
+                initMap();
+            }
+
+            clearPizzaShopMarkers();
+        }
+
+        // Function to show Faizzeria sub-tabs
+        function showFizzeriaTab(tabId) {
+            console.log(`Switching to Faizzeria sub-tab: ${tabId}`);
+            const tabs = document.querySelectorAll('.faizzeria-content');
+            tabs.forEach(tab => tab.classList.add('hidden')); // Hide all sub-tabs
+            document.getElementById(tabId).classList.remove('hidden'); // Show the selected sub-tab
+
+            const subTabLinks = document.querySelectorAll('.sub-tab-link');
+            subTabLinks.forEach(link => {
+                link.classList.remove('active-sub-tab'); // Remove active class
+                if (link.getAttribute('href') === `#${tabId}`) {
+                    link.classList.add('active-sub-tab'); // Add active class
+                }
+            });
+        }
+
+        // Function to customize itinerary and display map
+        function customizeItinerary() {
+            console.log('Customizing itinerary...');
+            const travelStyle = document.getElementById('travelStyle').value;
+            const travelInterests = document.getElementById('travelInterests').value;
+            const transportation = document.getElementById('transportation').value;
+
+            let itinerary = `<h3>Your Custom Itinerary</h3>
+                <p><strong>Travel Style:</strong> ${travelStyle}</p>
+                <p><strong>Interests:</strong> ${travelInterests}</p>
+                <p><strong>Transportation:</strong> ${transportation}</p>`;
+
+            let location = [12.8797, 121.7740]; // Default: Philippines
+            let zoomLevel = 6;
+
+            if (travelInterests.toLowerCase().includes('pizza')) {
+                location = [40.8518, 14.2681];  // Naples, Italy
+                zoomLevel = 12;
+                itinerary += `<p>Enjoy the best Pizza in its birthplace.</p>`;
+            } else if (travelInterests.toLowerCase().includes('beach')) {
+                location = [10.3157, 123.8854]; // Cebu, Philippines
+                zoomLevel = 10;
+                itinerary += `<p>Relax and unwind on the beautiful beaches of Cebu.</p>`;
+            } else if (travelInterests.toLowerCase().includes('historical')) {
+                location = [14.5995, 120.9762];  // Intramuros, Manila
+                zoomLevel = 13;
+                itinerary += `<p>Explore the rich history of Intramuros.</p>`;
+            } else {
+                itinerary += `<p>Enjoy your stay in the Philippines!</p>`;
+            }
+
+            document.getElementById('custom-itinerary-output').innerHTML = itinerary;
+
+            if (!map) {
+                initMap();
+            }
+            map.setView(location, zoomLevel);
+            L.marker(location).addTo(map)
+                .bindPopup(`<strong>${travelInterests} Destination</strong>`).openPopup();
+
+            if (travelInterests.toLowerCase().includes('pizza')) {
+                addPizzaShopMarkers(location);
+            } else {
+                clearPizzaShopMarkers();
+            }
+        }
+
+        // Function to add pizza shop markers
+        function addPizzaShopMarkers(center) {
+            console.log('Adding pizza shop markers...');
+            clearPizzaShopMarkers();
+
+            const pizzaShops = [
+                { name: "Gino's Brick Oven Pizza", location: [14.0588, 121.1774] },
+                { name: "Amare La Cucina", location: [14.0534, 121.1659] },
+                { name: "Sapore Ristorante Italiano", location: [14.0896, 121.1331] }
+            ];
+
+            pizzaShops.forEach(shop => {
+                const marker = L.marker(shop.location)
+                    .bindPopup(`<strong>${shop.name}</strong>`)
+                    .addTo(map);
+                pizzaShopMarkers.push(marker);
+            });
+        }
+
+        // Function to clear pizza shop markers
+        function clearPizzaShopMarkers() {
+            console.log('Clearing pizza shop markers...');
+            pizzaShopMarkers.forEach(marker => {
+                map.removeLayer(marker);
+            });
+            pizzaShopMarkers = [];
+        }
+
+        // Attach functions to global scope for inline event handlers
+        window.showTab = showTab;
+        window.showFizzeriaTab = showFizzeriaTab;
+        window.customizeItinerary = customizeItinerary;
+        window.validateForm = validateForm;
+    });
+</script>
+</html>
+</body>
+</html>
